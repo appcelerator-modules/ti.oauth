@@ -1,0 +1,11 @@
+._*
+.DS_Store*
+/coverage
+/documentation
+/dist
+/staging
+*.zip
+node_modules
+npm-debug.log
+*.map
+/npm-shrinkwrap.json

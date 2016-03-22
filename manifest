@@ -1,0 +1,17 @@
+#
+# this is your module manifest and used by Titanium
+# during compilation, packaging, distribution, etc.
+#
+version: 0.1.0
+description: OAuth 2.0 Implementation
+author: Appcelerator
+license: Appcelerator Commercial License
+copyright: Copyright (c) 2016 by Appcelerator,  Inc.
+
+
+# these should not be edited
+name: ti.oauth
+moduleid: ti.oauth
+guid: 526b8266-1f47-4caf-81d8-bbd4c76abbba
+platform: commonjs
+minsdk: 2.1.0

@@ -1,0 +1,71 @@
+{
+  "name": "ti.oauth",
+  "version": "0.1.0",
+  "description": "OAuth 2.0 Implementation for Titanium",
+  "main": "./ti.oauth.js",
+  "author": {
+    "name": "Appcelerator, Inc.",
+    "email": "npmjs@appcelerator.com"
+  },
+  "maintainers": [
+    {
+      "name": "Chris Williams",
+      "email": "cwilliams@appcelerator.com"
+    }
+  ],
+  "license": "Apache-2.0",
+  "keywords": [
+    "appcelerator",
+    "commonjs",
+    "module",
+    "oauth",
+    "titanium"
+  ],
+  "scripts": {
+    "build": "gulp build",
+    "dist": "gulp dist",
+    "coverage": "gulp coverage",
+    "docs": "gulp docs",
+    "prepublish": "gulp build && npm shrinkwrap",
+    "test": "gulp test"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "autobind-decorator": "^1.3.3",
+    "babel-eslint": "^5.0.0",
+    "babel-plugin-transform-class-properties": "^6.6.0",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-preset-es2015": "^6.6.0",
+    "chai": "^3.5.0",
+    "del": "^2.2.0",
+    "esdoc-es7-plugin": "^0.0.3",
+    "eslint": "2.2.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-babel-istanbul": "^1.0.0",
+    "gulp-debug": "^2.1.2",
+    "gulp-esdoc": "^0.2.0",
+    "gulp-eslint": "^2.0.0",
+    "gulp-filter": "^4.0.0",
+    "gulp-inject-modules": "^0.1.1",
+    "gulp-load-plugins": "^1.2.0",
+    "gulp-mocha": "^2.2.0",
+    "gulp-plumber": "^1.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-rollup": "^1.7.0",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-zip": "^3.2.0",
+    "sinon": "^1.17.3",
+    "sinon-chai": "^2.8.0"
+  },
+  "homepage": "https://github.com/appcelerator-modules/ti.oauth#readme",
+  "bugs": "https://github.com/appcelerator-modules/ti.oauth/issues",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/appcelerator-modules/ti.oauth.git"
+  },
+  "engines": {
+    "node": ">=4.0.0"
+  }
+}
