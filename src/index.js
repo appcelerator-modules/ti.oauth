@@ -170,7 +170,6 @@ OAuth.prototype.refresh = function (url, callback) {
  */
 OAuth.authorizeImplicitly = function (url, clientId, scopes, ignoreSslError, callback) {
 	var scope = scopes || '',
-		self = this,
 		win,
 		webview,
 		state = generateGUID(),
@@ -295,9 +294,7 @@ OAuth.authorizeWithApplication = function (url, clientId, clientSecret, scopes, 
  */
 // TODO According to the RFC spec, we shouldn't send client secret for native apps.
 OAuth.authorizeExplicitly = function (authURL, tokenURL, clientId, clientSecret, scopes, ignoreSslError, callback) {
-	var scope = scopes || 'scope';
-	
-	var self = this,
+	var scope = scopes || 'scope',
 		win,
 		webview,
 		webViewDetails,	
