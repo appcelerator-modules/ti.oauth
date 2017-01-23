@@ -66,7 +66,8 @@ function post(url, formData, callback) {
  */
 function generateGUID() {
 	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+		var r = Math.random()*16|0,
+			v = c == 'x' ? r : (r&0x3|0x8);
 		return v.toString(16);
 	});
 }
@@ -163,20 +164,24 @@ OAuth.prototype.refresh = function (url, callback) {
  *
  * @param  {String}   url      The token endpoint URL
  * @param  {String}   clientId The client id
+ * @param  {String}   scopes The scopes with oauth
+ * @param  {Boolean}  ignoreSslError To bypass the self signed certificate
  * @param  {Function} callback First arg is error (if any), second is OAuth object on success.
  */
-OAuth.authorizeImplicitly = function(url, clientId, callback) {
-	var self = this,
+OAuth.authorizeImplicitly = function (url, clientId, scopes, ignoreSslError, callback) {
+	var scope = scopes || '',
+		self = this,
 		win,
 		webview,
-		retryCount = 0,
-		state = generateGUID();
+		state = generateGUID(),
+		webViewDetails;
+
 	win = Ti.UI.createWindow(AUTH_WINDOW_OPTIONS);
-	webview = Ti.UI.createWebView({
-		width : '100%',
-		height : '100%',
-		url : buildURL(url, {
-			//scope: 'scopes', // FIXME Allow user to specify scopes?
+	webViewDetails = {
+		width: '100%',
+		height: '100%',
+		url: buildURL(url, {
+			scope: scope, 
 			approval_prompt: 'force',
 			redirect_uri: CALLBACK_URL,
 			response_type: 'token',
@@ -184,7 +189,12 @@ OAuth.authorizeImplicitly = function(url, clientId, callback) {
 			btmpl: 'mobile',
 			state: state
 		})
-	});
+	};
+	if (ignoreSslError) {
+		webViewDetails.ignoreSslError  = true;
+	}
+	webview = Ti.UI.createWebView(webViewDetails);
+
 	win.add(webview);
 	webview.addEventListener('error', function(e) {
 		var queryParams = parseQueryParams(e.url);
@@ -221,21 +231,52 @@ OAuth.authorizeImplicitly = function(url, clientId, callback) {
  * @param  {String}   clientSecret The client secret
  * @param  {String}   username The username to log in.
  * @param  {String}   password The password to log in.
+ * @param  {String}   scopes The scopes with oauth
  * @param  {Function} callback Callback function, called when auth is done.
  * First arg is error object if any, second is an OAuth object
  */
 // TODO Support putting clientId/secret into basic auth header rather than body?
 // TODO According to the RFC spec, we shouldn't send client secret
-OAuth.authorizeWithPassword = function (url, clientId, clientSecret, username, password, callback) {
+OAuth.authorizeWithPassword = function (url, clientId, clientSecret, username, password, scopes, callback) {
+	var scope = scopes || '';
+	
 	post(url, {
 		grant_type: 'password',
 		username: username,
 		password: password,
 		client_id: clientId,
-		client_secret: clientSecret
-	}, callback);
+		client_secret: clientSecret,
+		scope: scope
+	}, function(err, oauth) {
+		callback(err, oauth);
+	});
 };
 
+
+/**
+ * Authorizes with client_id/client_secret for OAuth 2.0
+ *
+ * @param  {String}   url The oauth endpoint URL
+ * @param  {String}   clientId The client id
+ * @param  {String}   clientSecret The client secret
+ * @param  {String}   scopes The scopes with oauth
+ * @param  {Function} callback Callback function, called when auth is done.
+ * First arg is error object if any, second is an OAuth object
+ */
+// TODO Support putting clientId/secret into basic auth header rather than body?
+// TODO According to the RFC spec, we shouldn't send client secret
+OAuth.authorizeWithApplication = function (url, clientId, clientSecret, scopes, callback) {
+	var scope = scopes || '';
+	
+	post(url, {
+		grant_type: 'client_credentials',
+		client_id: clientId,
+		client_secret: clientSecret,
+		scope: scope
+	}, function(err, oauth) {
+		callback(err, oauth);
+	});
+};
 
 /**
  * Begins the OAuth 2.0 Explicit flow, a 2-legged auth flow. This will open a
@@ -249,15 +290,18 @@ OAuth.authorizeWithPassword = function (url, clientId, clientSecret, username, p
  * @param  {String}   tokenURL The URL to use for second stage, get the access token by passing auth code here.
  * @param  {String}   clientId
  * @param  {String}   clientSecret
+ * @param  {String}   scopes The scopes with oauth
  * @param  {Function} callback Callback function. First arg is error (if any), second is accessToken/code.
  */
 // TODO According to the RFC spec, we shouldn't send client secret for native apps.
-OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, callback) {
+OAuth.authorizeExplicitly = function (authURL, tokenURL, clientId, clientSecret, scopes, ignoreSslError, callback) {
+	var scope = scopes || 'scope';
+	
 	var self = this,
 		win,
 		webview,
+		webViewDetails,	
 		spinner,
-		retryCount = 0,
 		state = generateGUID(),
 		next = function(err, code) {
 			if (err) {
@@ -277,25 +321,30 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 		};
 	win = Ti.UI.createWindow(AUTH_WINDOW_OPTIONS);
 	spinner = Ti.UI.createActivityIndicator({
-		zIndex : 1,
-		height : 50,
-		width : 50,
-		hide : true,
-		style : Ti.UI.ActivityIndicatorStyle.DARK
+		zIndex: 1,
+		height: 50,
+		width: 50,
+		hide: true,
+		style: Ti.UI.ActivityIndicatorStyle.DARK
 	});
-	webview = Ti.UI.createWebView({
-		width : '100%',
-		height : '100%',
-		url : buildURL(authURL, {
+	webViewDetails = {
+		width: '100%',
+		height: '100%',
+		url: buildURL(authURL, {
 			response_type: 'code',
 			client_id: clientId,
 			redirect_uri: CALLBACK_URL,
-			//scope: 'scope', // FIXME Allow user to pass in scopes?
+			scope: scope,
 			approval_prompt: 'force',
 			btmpl: 'mobile',
 			state: state
 		})
-	});
+	};
+	if (ignoreSslError) {
+		webViewDetails.ignoreSslError  = true;
+	}
+	
+	webview = Ti.UI.createWebView(webViewDetails);
 	win.add(spinner);
 	win.add(webview);
 	webview.addEventListener('error', function(e) {
@@ -308,8 +357,10 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 			if (queryParams.state !== state) {
 				return callback('Possible Cross-site request forgery. state doesn\'t match.');
 			}
+			win.close();
 			return next(null, queryParams.code);
 		}
+		win.close();
 		return next(e.error);
 	});
 	win.open();
