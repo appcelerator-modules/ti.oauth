@@ -36,7 +36,7 @@ describe('OAuth 2.0', () => {
 					callback({ url: `http://localhost/Callback?access_token=997f871ee3194eb39b4f2a19d5871cb8608e9c0a&state=${state}&token_type=Bearer` });
 				});
 			};
-			OAuth.authorizeImplicitly(implicit.url, implicit.clientId, function (err, oauth) {
+			OAuth.authorizeImplicitly(implicit.url, implicit.clientId, 'scope', function (err, oauth) {
 				if (err) {
 					return done(err);
 				}
@@ -61,7 +61,7 @@ describe('OAuth 2.0', () => {
 					callback({ url: 'http://localhost/Callback?access_token=997f871ee3194eb39b4f2a19d5871cb8608e9c0a&state=madeupstate&token_type=Bearer' });
 				});
 			};
-			OAuth.authorizeImplicitly(implicit.url, implicit.clientId, function (err, oauth) {
+			OAuth.authorizeImplicitly(implicit.url, implicit.clientId, '', function (err, oauth) {
 				expect(err).to.exist;
 
 				expect(oauth).not.to.exist;
@@ -81,7 +81,7 @@ describe('OAuth 2.0', () => {
 					callback({ url: `http://localhost/Callback?access_token=997f871ee3194eb39b4f2a19d5871cb8608e9c0a&state=${state}&token_type=Bearer` });
 				});
 			};
-			OAuth.authorizeImplicitly(implicit.url, implicit.clientId, function (err, oauth) {
+			OAuth.authorizeImplicitly(implicit.url, implicit.clientId, '', function (err, oauth) {
 				if (err) {
 					return done(err);
 				}
@@ -114,7 +114,7 @@ describe('OAuth 2.0', () => {
 
 				httpclient.onload();
 			};
-			OAuth.authorizeWithPassword(password.url, password.clientId, password.clientSecret, password.username, password.password, function (err, oauth) {
+			OAuth.authorizeWithPassword(password.url, password.clientId, password.clientSecret, password.username, password.password, '', function (err, oauth) {
 				if (err) {
 					return done(err);
 				}
@@ -138,7 +138,7 @@ describe('OAuth 2.0', () => {
 
 				httpclient.onload();
 			};
-			OAuth.authorizeWithPassword(password.url, password.clientId, password.clientSecret, password.username, password.password, function (err, oauth) {
+			OAuth.authorizeWithPassword(password.url, password.clientId, password.clientSecret, password.username, password.password, '', function (err, oauth) {
 				if (err) {
 					return done(err);
 				}
