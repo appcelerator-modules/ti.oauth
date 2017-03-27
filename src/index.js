@@ -4,12 +4,11 @@
 // TODO Do we want to support OAuth 1.0? https://github.com/indieocean/Titanium-OAuth-Client/blob/master/titanium_oauth.js
 // TODO Allow users to specify scopes when authorizing
 const CALLBACK_URL = 'http://localhost/Callback'; //'urn:ietf:wg:oauth:2.0:oob' // FIXME can we redirect to some other URL scheme that won't show errors in console?
-// TODO ALlow users to modify the look and feel of the window that opens the webview for auth? really doesn't matter much...
+// TODO Allow users to modify the look and feel of the window that opens the webview for auth? really doesn't matter much...
 // Only important one here is the title.
 const AUTH_WINDOW_OPTIONS = {
 	backgroundColor : 'white',
 	barColor : '#000000',
-	modal : true,
 	title : 'OAuth Example'
 };
 
@@ -97,6 +96,7 @@ var OAuth = function OAuth(clientId) {
 	this.refreshToken = null;
 	this.tokenType = null;
 	this.expiresIn = 0;
+	this.ignoreSslError = false;
 };
 
 /**
@@ -173,8 +173,9 @@ OAuth.authorizeImplicitly = function(url, clientId, callback) {
 		state = generateGUID();
 	win = Ti.UI.createWindow(AUTH_WINDOW_OPTIONS);
 	webview = Ti.UI.createWebView({
-		width : '100%',
-		height : '100%',
+		width : Ti.UI.FILL,
+		height : Ti.UI.FILL,
+		ignoreSslError: this.ignoreSslError,
 		url : buildURL(url, {
 			//scope: 'scopes', // FIXME Allow user to specify scopes?
 			approval_prompt: 'force',
@@ -284,8 +285,9 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 		style : Ti.UI.ActivityIndicatorStyle.DARK
 	});
 	webview = Ti.UI.createWebView({
-		width : '100%',
-		height : '100%',
+		width : Ti.UI.FILL,
+		height : Ti.UI.FILL,
+		ignoreSslError: this.ignoreSslError,
 		url : buildURL(authURL, {
 			response_type: 'code',
 			client_id: clientId,
