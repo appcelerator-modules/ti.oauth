@@ -26,7 +26,7 @@ describe('OAuth 2.0', () => {
 		it('should authorize', (done) => {
 			Ti.UI.Webview.handler = (webview) => {
 				// Validate the url set on the webview, etc
-				expect(webview.url).to.include(`http://brentertainment.com/oauth2/lockdin/authorize?approval_prompt=force&redirect_uri=http%3A%2F%2Flocalhost%2FCallback&response_type=token&client_id=${implicit.clientId}&btmpl=mobile&state=`);
+				expect(webview.url).to.include(`http://brentertainment.com/oauth2/lockdin/authorize?scope=&approval_prompt=force&redirect_uri=http%3A%2F%2Flocalhost%2FCallback&response_type=token&client_id=${implicit.clientId}&btmpl=mobile&state=`);
 				let state = webview.url.slice(webview.url.indexOf('state=') + 6);
 				// fire error event
 				let error = webview.eventListeners['error'] || [];
@@ -52,7 +52,7 @@ describe('OAuth 2.0', () => {
 		it('should return error for possible CSRF from un-matched state value', (done) => {
 			Ti.UI.Webview.handler = (webview) => {
 				// Validate the url set on the webview, etc
-				expect(webview.url).to.include(`http://brentertainment.com/oauth2/lockdin/authorize?approval_prompt=force&redirect_uri=http%3A%2F%2Flocalhost%2FCallback&response_type=token&client_id=${implicit.clientId}&btmpl=mobile&state=`);
+				expect(webview.url).to.include(`http://brentertainment.com/oauth2/lockdin/authorize?scope=&approval_prompt=force&redirect_uri=http%3A%2F%2Flocalhost%2FCallback&response_type=token&client_id=${implicit.clientId}&btmpl=mobile&state=`);
 				// fire error event
 				let error = webview.eventListeners['error'] || [];
 				error.forEach(callback => {
@@ -71,7 +71,7 @@ describe('OAuth 2.0', () => {
 		it('should not allow refresh of token', (done) => {
 			Ti.UI.Webview.handler = (webview) => {
 				// Validate the url set on the webview, etc
-				expect(webview.url).to.include(`http://brentertainment.com/oauth2/lockdin/authorize?approval_prompt=force&redirect_uri=http%3A%2F%2Flocalhost%2FCallback&response_type=token&client_id=${implicit.clientId}&btmpl=mobile&state=`);
+				expect(webview.url).to.include(`http://brentertainment.com/oauth2/lockdin/authorize?scope=&approval_prompt=force&redirect_uri=http%3A%2F%2Flocalhost%2FCallback&response_type=token&client_id=${implicit.clientId}&btmpl=mobile&state=`);
 				let state = webview.url.slice(webview.url.indexOf('state=') + 6);
 				// fire error event
 				let error = webview.eventListeners['error'] || [];

@@ -180,12 +180,14 @@ OAuth.prototype.refresh = function (url, callback) {
  * @param  {String}   clientId The client id
  * @param  {Function} callback First arg is error (if any), second is OAuth object on success.
  */
-OAuth.authorizeImplicitly = function(url, clientId, callback) {
-	var self = this,
-		win,
+OAuth.authorizeImplicitly = function(url, clientId, scopes, callback) {
+	if (typeof scopes === 'function') {
+		callback = scopes;
+		scopes = '';
+	}
+	var win,
 		nav,
 		webview,
-		retryCount = 0,
 		state = generateGUID();
 
 	win = Ti.UI.createWindow(AUTH_WINDOW_OPTIONS);
@@ -211,7 +213,7 @@ OAuth.authorizeImplicitly = function(url, clientId, callback) {
 		height : Ti.UI.FILL,
 		ignoreSslError: this.ignoreSslError,
 		url : buildURL(url, {
-			//scope: 'scopes', // FIXME Allow user to specify scopes?
+			scope: scopes,
 			approval_prompt: 'force',
 			redirect_uri: CALLBACK_URL,
 			response_type: 'token',
@@ -285,13 +287,18 @@ OAuth.authorizeImplicitly = function(url, clientId, callback) {
  */
 // TODO Support putting clientId/secret into basic auth header rather than body?
 // TODO According to the RFC spec, we shouldn't send client secret
-OAuth.authorizeWithPassword = function (url, clientId, clientSecret, username, password, callback) {
+OAuth.authorizeWithPassword = function (url, clientId, clientSecret, username, password, scopes, callback) {
+	if (typeof scopes === 'function') {
+		callback = scopes;
+		scopes = '';
+	}
 	post(url, {
 		grant_type: 'password',
 		username: username,
 		password: password,
 		client_id: clientId,
-		client_secret: clientSecret
+		client_secret: clientSecret,
+		scope: scopes
 	}, callback);
 };
 
@@ -310,9 +317,12 @@ OAuth.authorizeWithPassword = function (url, clientId, clientSecret, username, p
  * @param  {Function} callback Callback function. First arg is error (if any), second is accessToken/code.
  */
 // TODO According to the RFC spec, we shouldn't send client secret for native apps.
-OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, callback) {
-	var self = this,
-		win,
+OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, scopes, callback) {
+	if (typeof scopes === 'function') {
+		callback = scopes;
+		scopes = '';
+	}
+	var win,
 		webview,
 		spinner,
 		nav,
@@ -370,7 +380,7 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 			response_type: 'code',
 			client_id: clientId,
 			redirect_uri: CALLBACK_URL,
-			//scope: 'scope', // FIXME Allow user to pass in scopes?
+			scope: scopes,
 			approval_prompt: 'force',
 			btmpl: 'mobile',
 			state: state
@@ -404,6 +414,32 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 	} else {
 		win.open();
 	}
+};
+
+
+/**
+ * Authorizes with client_id/client_secret for OAuth 2.0
+ *
+ * @param  {String}   url The oauth endpoint URL
+ * @param  {String}   clientId The client id
+ * @param  {String}   clientSecret The client secret
+ * @param  {String}   scopes The scopes with oauth
+ * @param  {Function} callback Callback function, called when auth is done.
+ * First arg is error object if any, second is an OAuth object
+ */
+// TODO Support putting clientId/secret into basic auth header rather than body?
+// TODO According to the RFC spec, we shouldn't send client secret
+OAuth.authorizeWithApplication = function (url, clientId, clientSecret, scopes, callback) {
+	if (typeof scopes === 'function') {
+		callback = scopes;
+		scopes = '';
+	}
+	post(url, {
+		grant_type: 'client_credentials',
+		client_id: clientId,
+		client_secret: clientSecret,
+		scope: scopes
+	}, callback);
 };
 
 export default OAuth;
