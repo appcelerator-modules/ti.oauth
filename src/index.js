@@ -261,10 +261,10 @@ OAuth.authorizeWithPassword = function (url, clientId, clientSecret, username, p
  */
 // TODO According to the RFC spec, we shouldn't send client secret for native apps.
 OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, scopes, callback) {
-    if (typeof scopes === 'function') {
-        callback = scopes;
-        scopes = '';
-    }
+	if (typeof scopes === 'function') {
+		callback = scopes;
+		scopes = '';
+	}
 	var win,
 		webview,
 		spinner,
