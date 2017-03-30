@@ -96,13 +96,8 @@ var OAuth = function OAuth(clientId) {
 	this.refreshToken = null;
 	this.tokenType = null;
 	this.expiresIn = 0;
+	this.ignoreSslError = false;
 };
-
-
-/**
- * For by passing self signed certificate. By default false
- */
-OAuth.prototype.ignoreSslError = false;
 
 /**
  * Attempts to load existing tokens from disk for a given clientId.
@@ -182,9 +177,9 @@ OAuth.authorizeImplicitly = function(url, clientId, scopes, callback) {
 	webview = Ti.UI.createWebView({
 		width : Ti.UI.FILL,
 		height : Ti.UI.FILL,
-		ignoreSslError: this.ignoreSslError ? true : false,
+		ignoreSslError: this.ignoreSslError,
 		url : buildURL(url, {
-            scope: scopes,
+			scope: scopes,
 			approval_prompt: 'force',
 			redirect_uri: CALLBACK_URL,
 			response_type: 'token',
@@ -245,7 +240,7 @@ OAuth.authorizeWithPassword = function (url, clientId, clientSecret, username, p
 		password: password,
 		client_id: clientId,
 		client_secret: clientSecret,
-        scope: scopes
+		scope: scopes
 	}, callback);
 };
 
@@ -301,7 +296,7 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 	webview = Ti.UI.createWebView({
 		width : Ti.UI.FILL,
 		height : Ti.UI.FILL,
-		ignoreSslError: this.ignoreSslError ? true : false,
+		ignoreSslError: this.ignoreSslError,
 		url : buildURL(authURL, {
 			response_type: 'code',
 			client_id: clientId,
@@ -345,16 +340,16 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 // TODO Support putting clientId/secret into basic auth header rather than body?
 // TODO According to the RFC spec, we shouldn't send client secret
 OAuth.authorizeWithApplication = function (url, clientId, clientSecret, scopes, callback) {
-    if (typeof scopes === 'function') {
-        callback = scopes;
-        scopes = '';
-    }
-    post(url, {
-        grant_type: 'client_credentials',
-        client_id: clientId,
-        client_secret: clientSecret,
-        scope: scopes
-    }, callback);
+	if (typeof scopes === 'function') {
+		callback = scopes;
+		scopes = '';
+	}
+	post(url, {
+		grant_type: 'client_credentials',
+		client_id: clientId,
+		client_secret: clientSecret,
+		scope: scopes
+	}, callback);
 };
 
 export default OAuth;
