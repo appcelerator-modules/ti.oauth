@@ -25,6 +25,7 @@
     "build": "gulp build",
     "dist": "gulp dist",
     "coverage": "gulp coverage",
+    "clean": "gulp clean",
     "docs": "gulp docs",
     "prepublish": "gulp build && npm shrinkwrap",
     "test": "gulp test"

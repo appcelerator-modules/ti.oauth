@@ -1,6 +1,4 @@
-import Titanium from './ti-mock';
-const Ti = global.Ti = global.Titanium = Titanium;
-
+/* global Ti */
 import OAuth from '../src/index';
 
 const implicit = {

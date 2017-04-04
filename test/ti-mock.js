@@ -109,6 +109,9 @@ let Ti = {
 			}
 		}
 	},
+	Platform: {
+		osname: 'android'
+	},
 	UI: {
 		ActivityIndicator: TiUIActivityIndicator,
 		Window: TiUIWindow,

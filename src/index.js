@@ -15,7 +15,6 @@ const AUTH_WINDOW_OPTIONS = {
 const isiOS = Ti.Platform.osname == 'iphone' || Ti.Platform.osname == 'ipad';
 
 /********** Helpers **********/
-
 function buildURL(baseURL, params) {
 	var encodedParams = [];
 
