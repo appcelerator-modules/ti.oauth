@@ -8,19 +8,23 @@ const CALLBACK_URL = 'http://localhost/Callback'; //'urn:ietf:wg:oauth:2.0:oob' 
 // Only important one here is the title.
 const AUTH_WINDOW_OPTIONS = {
 	backgroundColor : 'white',
-	barColor : '#000000',
+	translucent: false,
 	title : 'OAuth Example'
 };
+
+const isiOS = Ti.Platform.osname == 'iphone' || Ti.Platform.osname == 'ipad';
 
 /********** Helpers **********/
 
 function buildURL(baseURL, params) {
 	var encodedParams = [];
+	
 	for (var param in params) {
 		if (params.hasOwnProperty(param)) {
 			encodedParams.push(encodeURIComponent(param) + '=' + encodeURIComponent(params[param]));
 		}
 	}
+	
 	return baseURL + '?' + encodedParams.join('&');
 }
 
@@ -37,12 +41,14 @@ function post(url, formData, callback) {
 		onload : function(e) {
 			var resp = JSON.parse(this.responseText),
 				oauth = new OAuth(formData.client_id);
+			
 			oauth.expiresIn = parseFloat(resp.expires_in, 10) * 1000 + (new Date()).getTime();
 			oauth.tokenType = resp.token_type;
 			oauth.accessToken = resp.access_token;
 			oauth.refreshToken = resp.refresh_token;
 			oauth.clientSecret = formData.client_secret;
 			oauth.save();
+			
 			callback(null, oauth);
 		},
 		// function called when an error occurs, including a timeout
@@ -51,10 +57,13 @@ function post(url, formData, callback) {
 		},
 		timeout : 5000 /* in milliseconds */
 	});
+
 	// Prepare the connection.
 	xhr.open('POST', url);
+
 	// TODO support using basic auth to embed client id and client secret?
 	xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
 	// Send the request.
 	xhr.send(formData);
 }
@@ -79,12 +88,15 @@ function parseQueryParams(url) {
 	var queryParams = {},
 		pairs = [],
 		keyValuePair;
+	
 	// FIXME handle when there are no query params?
 	pairs = decodeURI(url).slice(CALLBACK_URL.length + 1).split('&'); // cut off base callback URL and ? char
+	
 	for (var i = 0; i < pairs.length; i++) {
 		keyValuePair = pairs[i].split('=');
 		queryParams[keyValuePair[0]] = keyValuePair[1];
 	}
+	
 	return queryParams;
 }
 
@@ -132,9 +144,11 @@ OAuth.prototype.invalidate = function() {
 
 OAuth.prototype.refresh = function (url, callback) {
 	var self = this;
+	
 	if (!this.refreshToken) {
 		return callback('This OAuth flow type doesn\'t support refreshing.');
 	}
+	
 	// TODO If we don't have a refreshToken, maybe just re-auth? I mean we have the clientId so can do implicit re-auth if we keep the URL around
 	//
 	post(url, {
@@ -146,11 +160,13 @@ OAuth.prototype.refresh = function (url, callback) {
 		if (err) {
 			return callback(err);
 		}
+		
 		// Update our fields and return us
 		self.refreshToken = oauth.refreshToken;
 		self.accessToken = oauth.accessToken;
 		self.expiresIn = oauth.expiresIn;
 		self.save();
+		
 		return callback(null, self);
 	});
 };
@@ -168,10 +184,29 @@ OAuth.prototype.refresh = function (url, callback) {
 OAuth.authorizeImplicitly = function(url, clientId, callback) {
 	var self = this,
 		win,
+		nav,
 		webview,
 		retryCount = 0,
 		state = generateGUID();
+		
 	win = Ti.UI.createWindow(AUTH_WINDOW_OPTIONS);
+	
+	if (isiOS === true) {
+		var closeButton = Ti.UI.createButton({
+			title: L('close', 'Close')
+		});
+		
+		nav = Ti.UI.iOS.createNavigationWindow({
+			window: win
+		});
+		
+		closeButton.addEventListener('click', function() {
+			nav.close();
+		});
+		
+		win.setRightNavButton(closeButton);
+	}
+	
 	webview = Ti.UI.createWebView({
 		width : Ti.UI.FILL,
 		height : Ti.UI.FILL,
@@ -186,15 +221,29 @@ OAuth.authorizeImplicitly = function(url, clientId, callback) {
 			state: state
 		})
 	});
+	
 	win.add(webview);
+	
 	webview.addEventListener('error', function(e) {
 		var queryParams = parseQueryParams(e.url);
+		
 		if (queryParams.error) {
-			win.close();
+			if (isiOS === true) {
+				nav.close();
+			} else {
+				win.close();
+			}
+
 			return callback(queryParams.error_description || queryParams.error);
 		}
+		
 		if (queryParams.access_token) {
-			win.close();
+			if (isiOS === true) {
+				nav.close();
+			} else {
+				win.close();
+			}
+			
 			// check CSRF
 			if (queryParams.state !== state) {
 				return callback('Possible Cross-site request forgery. state doesn\'t match.');
@@ -202,16 +251,24 @@ OAuth.authorizeImplicitly = function(url, clientId, callback) {
 
 			var oauth = new OAuth(clientId);
 			oauth.accessToken = queryParams.access_token;
+			
 			if (queryParams.expires_in) {
 				oauth.expiresIn = parseFloat(queryParams.expires_in, 10) * 1000 + (new Date()).getTime();
 			}
+			
 			oauth.tokenType = queryParams.token_type;
 			return callback(null, oauth);
 		}
+	
 		win.close();
 		return callback(e.error);
 	});
-	win.open();
+
+	if (isiOS === true) {
+		nav.open();
+	} else {
+		win.open();
+	}
 };
 
 /**
@@ -237,7 +294,6 @@ OAuth.authorizeWithPassword = function (url, clientId, clientSecret, username, p
 	}, callback);
 };
 
-
 /**
  * Begins the OAuth 2.0 Explicit flow, a 2-legged auth flow. This will open a
  * Webview to authorize with the user and receive a code. The second part will
@@ -258,6 +314,7 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 		win,
 		webview,
 		spinner,
+		nav,
 		retryCount = 0,
 		state = generateGUID(),
 		next = function(err, code) {
@@ -265,6 +322,7 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 				win.close();
 				return callback(err);
 			}
+			
 			webview.hide();
 			spinner.show();
 
@@ -276,7 +334,25 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 				client_secret: clientSecret
 			}, callback);
 		};
+	
 	win = Ti.UI.createWindow(AUTH_WINDOW_OPTIONS);
+	
+	if (isiOS === true) {
+		var closeButton = Ti.UI.createButton({
+			title: L('close', 'Close')
+		});
+		
+		nav = Ti.UI.iOS.createNavigationWindow({
+			window: win
+		});
+		
+		closeButton.addEventListener('click', function() {
+			nav.close();
+		});
+		
+		win.setRightNavButton(closeButton);
+	}
+	
 	spinner = Ti.UI.createActivityIndicator({
 		zIndex : 1,
 		height : 50,
@@ -284,6 +360,7 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 		hide : true,
 		style : Ti.UI.ActivityIndicatorStyle.DARK
 	});
+	
 	webview = Ti.UI.createWebView({
 		width : Ti.UI.FILL,
 		height : Ti.UI.FILL,
@@ -298,13 +375,17 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 			state: state
 		})
 	});
+	
 	win.add(spinner);
 	win.add(webview);
+	
 	webview.addEventListener('error', function(e) {
 		var queryParams = parseQueryParams(e.url);
+		
 		if (queryParams.error) {
 			return next(queryParams.error_description || queryParams.error);
 		}
+		
 		if (queryParams.code) {
 			// check CSRF
 			if (queryParams.state !== state) {
@@ -314,7 +395,12 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 		}
 		return next(e.error);
 	});
-	win.open();
+	
+	if (isiOS === true) {
+		nav.open();
+	} else {
+		win.open();
+	}
 };
 
 export default OAuth;
