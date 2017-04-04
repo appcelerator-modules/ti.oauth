@@ -265,7 +265,9 @@ OAuth.authorizeImplicitly = function(url, clientId, callback) {
 	});
 
 	if (isiOS === true) {
-		nav.open();
+		nav.open({
+			modal: true
+		});
 	} else {
 		win.open();
 	}
@@ -397,7 +399,9 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 	});
 	
 	if (isiOS === true) {
-		nav.open();
+		nav.open({
+			modal: true
+		});
 	} else {
 		win.open();
 	}
