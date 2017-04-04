@@ -1,5 +1,8 @@
 import { expect } from 'chai';
 
+import Titanium from './ti-mock';
+global.Ti = global.Titanium = Titanium;
+
 global.chai = require('chai');
 global.chai.use(require('sinon-chai'));
 global.expect = global.chai.expect;
