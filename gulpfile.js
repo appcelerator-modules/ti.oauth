@@ -10,11 +10,12 @@ const coverageDir = path.join(__dirname, 'coverage');
 const distDir = path.join(__dirname, 'dist');
 const docsDir = path.join(__dirname, 'documentation');
 const stagingDir = path.join(__dirname, 'staging');
+const junitReport = path.join(__dirname, 'junit_report.xml');
 
 /*
  * Clean tasks
  */
-gulp.task('clean', ['clean-coverage', 'clean-dist', 'clean-docs', 'clean-staging', 'clean-zip']);
+gulp.task('clean', ['clean-coverage', 'clean-dist', 'clean-docs', 'clean-reports', 'clean-staging', 'clean-zip']);
 
 gulp.task('clean-coverage', function (done) {
 	del([coverageDir]).then(function () { done(); });
@@ -26,6 +27,10 @@ gulp.task('clean-dist', function (done) {
 
 gulp.task('clean-docs', function (done) {
 	del([docsDir]).then(function () { done(); });
+});
+
+gulp.task('clean-reports', function (done) {
+	del([junitReport]).then(function () { done(); });
 });
 
 gulp.task('clean-staging', function (done) {
@@ -135,7 +140,14 @@ gulp.task('coverage', ['lint-src', 'lint-test', 'clean-coverage'], function (cb)
 				.pipe($.debug({ title: 'test' }))
 				.pipe($.babel())
 				.pipe($.injectModules())
-				.pipe($.mocha())
+				.pipe($.mocha({
+					reporter: 'mocha-jenkins-reporter',
+					reporterOptions: {
+						junit_report_name: 'Tests',
+						junit_report_path: junitReport,
+						junit_report_stack: 1
+					}
+				}))
 				.pipe($.babelIstanbul.writeReports())
 				.on('end', cb);
 		});

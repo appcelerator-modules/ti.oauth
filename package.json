@@ -57,6 +57,7 @@
     "gulp-rollup": "^1.7.0",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-zip": "^3.2.0",
+    "mocha-jenkins-reporter": "^0.3.7",
     "sinon": "^1.17.3",
     "sinon-chai": "^2.8.0"
   },

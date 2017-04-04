@@ -5,20 +5,23 @@ timestamps {
     }
 
     nodejs(nodeJSInstallationName: 'node 6.9.5') {
-      stage('Build') {
-        sh 'npm install'
-      }
+      ansiColor('xterm') {
+        stage('Build') {
+          sh 'npm install'
+        }
 
-      stage('Test') {
-        sh 'npm run-script coverage'
-        // TODO Can we generate a report that JUnit plugin or XUnit can handle?
-        sh 'npm run-script clean'
-      }
+        stage('Test') {
+          sh 'npm run-script coverage'
+          junit 'junit_report.xml'
+          // TODO Can we somehow consume the coverage report too?
+          sh 'npm run-script clean'
+        }
 
-      stage('Package') {
-        sh 'npm run-script dist'
-        archiveArtifacts '*-commonjs-*.zip'
-      }
-    }
-  }
-}
+        stage('Package') {
+          sh 'npm run-script dist'
+          archiveArtifacts '*-commonjs-*.zip'
+        }
+      } // ansiColor
+    } //nodejs
+  } // node
+} // timestamps
