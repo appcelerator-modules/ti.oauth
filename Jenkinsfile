@@ -1,7 +1,11 @@
+library 'pipeline-library'
+
 timestamps {
   node('osx || linux') {
     stage('Checkout') {
       checkout scm
+      def packageVersion = jsonParse(readFile('package.json'))['version']
+      currentBuild.displayName = "#${packageVersion}-${currentBuild.number}"
     }
 
     nodejs(nodeJSInstallationName: 'node 6.9.5') {
