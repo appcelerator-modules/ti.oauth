@@ -80,7 +80,7 @@ function generateGUID() {
 
 /**
  * Returns an Object with the query param key/value pairs.
- * @param  {String} url URl containing query params
+ * @param  {String} url URL containing query params
  * @return {Object}	 key/value pairs from query params on an URL
  */
 function parseQueryParams(url) {
@@ -141,6 +141,11 @@ OAuth.prototype.invalidate = function() {
 	this.save();
 };
 
+/**
+ * Refreshes the OAuth token.
+ * @param  {String}   url      [description]
+ * @param  {Function} callback [description]
+ */
 OAuth.prototype.refresh = function (url, callback) {
 	var self = this;
 
@@ -176,9 +181,10 @@ OAuth.prototype.refresh = function (url, callback) {
  * function with an error. If it succeeds we return an OAuth object as the second
  * argument to the callback.
  *
- * @param  {String}   url      The token endpoint URL
- * @param  {String}   clientId The client id
- * @param  {Function} callback First arg is error (if any), second is OAuth object on success.
+ * @param  {String}   url         The token endpoint URL
+ * @param  {String}   clientId    The client id
+ * @param  {String}   [scopes=''] The scopes to authorize for. Optional argument.
+ * @param  {Function} callback    First arg is error (if any), second is OAuth object on success.
  */
 OAuth.authorizeImplicitly = function(url, clientId, scopes, callback) {
 	if (typeof scopes === 'function') {
@@ -282,6 +288,7 @@ OAuth.authorizeImplicitly = function(url, clientId, scopes, callback) {
  * @param  {String}   clientSecret The client secret
  * @param  {String}   username The username to log in.
  * @param  {String}   password The password to log in.
+ * @param  {String}   [scopes=''] The scopes to authorize for. Optional argument.
  * @param  {Function} callback Callback function, called when auth is done.
  * First arg is error object if any, second is an OAuth object
  */
@@ -314,6 +321,7 @@ OAuth.authorizeWithPassword = function (url, clientId, clientSecret, username, p
  * @param  {String}   tokenURL The URL to use for second stage, get the access token by passing auth code here.
  * @param  {String}   clientId
  * @param  {String}   clientSecret
+ * @param  {String}   [scopes=''] The scopes to authorize for. Optional argument.
  * @param  {Function} callback Callback function. First arg is error (if any), second is accessToken/code.
  */
 // TODO According to the RFC spec, we shouldn't send client secret for native apps.
@@ -423,7 +431,7 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
  * @param  {String}   url The oauth endpoint URL
  * @param  {String}   clientId The client id
  * @param  {String}   clientSecret The client secret
- * @param  {String}   scopes The scopes with oauth
+ * @param  {String}   [scopes=''] The scopes to authorize for. Optional argument.
  * @param  {Function} callback Callback function, called when auth is done.
  * First arg is error object if any, second is an OAuth object
  */
