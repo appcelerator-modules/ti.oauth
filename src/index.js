@@ -70,15 +70,16 @@ function generateGUID() {
 /**
  * Returns an Object with the query param key/value pairs.
  * @param  {String} url URL containing query params
+ * @param  {String} callbackUrl The callback URL passed along
  * @return {Object}	 key/value pairs from query params on an URL
  */
-function parseQueryParams(url) {
+function parseQueryParams(url, callbackUrl) {
 	var queryParams = {},
 		pairs = [],
 		keyValuePair;
 
 	// FIXME handle when there are no query params?
-	pairs = decodeURI(url).slice(this.callbackUrl.length + 1).split('&'); // cut off base callback URL and ? char
+	pairs = decodeURI(url).slice(callbackUrl.length + 1).split('&'); // cut off base callback URL and ? char
 
 	for (var i = 0; i < pairs.length; i++) {
 		keyValuePair = pairs[i].split('=');
@@ -96,13 +97,14 @@ var OAuth = function OAuth(clientId) {
 	this.refreshToken = null;
 	this.tokenType = null;
 	this.expiresIn = 0;
-	this.ignoreSslError = false;
-	this.callbackUrl = 'http://localhost/Callback'; // FIXME: We should remove this in the next major release, keeping for backwards compatibility.
-	this.authWindowOptions = {
-		backgroundColor : 'white',
-		translucent: false,
-		title: 'OAuth Example'
-	};
+};
+
+OAuth.ignoreSslError = false;
+OAuth.callbackUrl = 'http://localhost/Callback'; // FIXME: We should remove this in the next major release, keeping for backwards compatibility.
+OAuth.authWindowOptions = {
+	backgroundColor : 'white',
+	translucent: false,
+	title: 'OAuth Example'
 };
 
 /**
@@ -189,7 +191,8 @@ OAuth.authorizeImplicitly = function(url, clientId, scopes, callback) {
 	var win,
 		nav,
 		webview,
-		state = generateGUID();
+		state = generateGUID(),
+		callbackUrl = this.callbackUrl;
 
 	win = Ti.UI.createWindow(this.authWindowOptions);
 
@@ -216,7 +219,7 @@ OAuth.authorizeImplicitly = function(url, clientId, scopes, callback) {
 		url : buildURL(url, {
 			scope: scopes,
 			approval_prompt: 'force',
-			redirect_uri: this.callbackUrl,
+			redirect_uri: callbackUrl,
 			response_type: 'token',
 			client_id: clientId,
 			btmpl: 'mobile',
@@ -227,7 +230,7 @@ OAuth.authorizeImplicitly = function(url, clientId, scopes, callback) {
 	win.add(webview);
 
 	webview.addEventListener('error', function(e) {
-		var queryParams = parseQueryParams(e.url);
+		var queryParams = parseQueryParams(e.url, callbackUrl);
 
 		if (queryParams.error) {
 			if (isiOS === true) {
@@ -383,7 +386,7 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 		url : buildURL(authURL, {
 			response_type: 'code',
 			client_id: clientId,
-			redirect_uri: this.callbackUrl,
+			redirect_uri: callbackUrl,
 			scope: scopes,
 			approval_prompt: 'force',
 			btmpl: 'mobile',
@@ -395,7 +398,7 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 	win.add(webview);
 
 	webview.addEventListener('error', function(e) {
-		var queryParams = parseQueryParams(e.url);
+		var queryParams = parseQueryParams(e.url, callbackUrl);
 
 		if (queryParams.error) {
 			return next(queryParams.error_description || queryParams.error);
