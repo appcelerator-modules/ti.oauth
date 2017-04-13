@@ -1,17 +1,6 @@
 /* global Ti, L */
 // RFC for OAuth2: https://tools.ietf.org/html/rfc6749
 
-// TODO Do we want to support OAuth 1.0? https://github.com/indieocean/Titanium-OAuth-Client/blob/master/titanium_oauth.js
-// TODO Allow users to specify scopes when authorizing
-const CALLBACK_URL = 'http://localhost/Callback'; //'urn:ietf:wg:oauth:2.0:oob' // FIXME can we redirect to some other URL scheme that won't show errors in console?
-// TODO Allow users to modify the look and feel of the window that opens the webview for auth? really doesn't matter much...
-// Only important one here is the title.
-const AUTH_WINDOW_OPTIONS = {
-	backgroundColor : 'white',
-	translucent: false,
-	title : 'OAuth Example'
-};
-
 const isiOS = Ti.Platform.osname == 'iphone' || Ti.Platform.osname == 'ipad';
 
 /********** Helpers **********/
@@ -89,7 +78,7 @@ function parseQueryParams(url) {
 		keyValuePair;
 
 	// FIXME handle when there are no query params?
-	pairs = decodeURI(url).slice(CALLBACK_URL.length + 1).split('&'); // cut off base callback URL and ? char
+	pairs = decodeURI(url).slice(this.callbackUrl.length + 1).split('&'); // cut off base callback URL and ? char
 
 	for (var i = 0; i < pairs.length; i++) {
 		keyValuePair = pairs[i].split('=');
@@ -108,6 +97,12 @@ var OAuth = function OAuth(clientId) {
 	this.tokenType = null;
 	this.expiresIn = 0;
 	this.ignoreSslError = false;
+	this.callbackUrl = 'http://localhost/Callback'; // FIXME: We should remove this in the next major release, keeping for backwards compatibility.
+	this.authWindowOptions = {
+		backgroundColor : 'white',
+		translucent: false,
+		title: 'OAuth Example'
+	};
 };
 
 /**
@@ -196,7 +191,7 @@ OAuth.authorizeImplicitly = function(url, clientId, scopes, callback) {
 		webview,
 		state = generateGUID();
 
-	win = Ti.UI.createWindow(AUTH_WINDOW_OPTIONS);
+	win = Ti.UI.createWindow(this.authWindowOptions);
 
 	if (isiOS === true) {
 		var closeButton = Ti.UI.createButton({
@@ -221,7 +216,7 @@ OAuth.authorizeImplicitly = function(url, clientId, scopes, callback) {
 		url : buildURL(url, {
 			scope: scopes,
 			approval_prompt: 'force',
-			redirect_uri: CALLBACK_URL,
+			redirect_uri: this.callbackUrl,
 			response_type: 'token',
 			client_id: clientId,
 			btmpl: 'mobile',
@@ -334,6 +329,7 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 		webview,
 		spinner,
 		nav,
+		callbackUrl = this.callbackUrl,
 		retryCount = 0,
 		state = generateGUID(),
 		next = function(err, code) {
@@ -348,13 +344,13 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 			post(tokenURL, {
 				grant_type: 'authorization_code',
 				code: code,
-				redirect_uri: CALLBACK_URL,
+				redirect_uri: callbackUrl,
 				client_id: clientId,
 				client_secret: clientSecret
 			}, callback);
 		};
 
-	win = Ti.UI.createWindow(AUTH_WINDOW_OPTIONS);
+	win = Ti.UI.createWindow(this.authWindowOptions);
 
 	if (isiOS === true) {
 		var closeButton = Ti.UI.createButton({
@@ -387,7 +383,7 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 		url : buildURL(authURL, {
 			response_type: 'code',
 			client_id: clientId,
-			redirect_uri: CALLBACK_URL,
+			redirect_uri: this.callbackUrl,
 			scope: scopes,
 			approval_prompt: 'force',
 			btmpl: 'mobile',
@@ -423,7 +419,6 @@ OAuth.authorizeExplicitly = function(authURL, tokenURL, clientId, clientSecret, 
 		win.open();
 	}
 };
-
 
 /**
  * Authorizes with client_id/client_secret for OAuth 2.0
